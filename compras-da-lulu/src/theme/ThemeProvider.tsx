@@ -1,11 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AppSettings, FontName, ThemeName } from '@/types';
+import React, { createContext, useContext } from 'react';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { themes, type ThemeTokens } from './themes';
 import { fontFamilyMap } from './fonts';
-
-const STORAGE_KEY = '@settings';
-const DEFAULT_SETTINGS: AppSettings = { theme: 'white', fontFamily: 'Inter' };
+import type { AppSettings, FontName, ThemeName } from '@/types';
 
 interface ThemeContextValue {
   tokens: ThemeTokens;
@@ -18,22 +15,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (raw) {
-        try {
-          setSettings(JSON.parse(raw) as AppSettings);
-        } catch {}
-      }
-    });
-  }, []);
-
-  const persist = (next: AppSettings) => {
-    setSettings(next);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  };
+  const { settings, setTheme, setFont } = useSettingsStore();
 
   return (
     <ThemeContext.Provider
@@ -41,8 +23,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         tokens: themes[settings.theme],
         fontFamily: fontFamilyMap[settings.fontFamily],
         settings,
-        setTheme: (theme) => persist({ ...settings, theme }),
-        setFont: (fontFamily) => persist({ ...settings, fontFamily }),
+        setTheme,
+        setFont,
       }}
     >
       {children}

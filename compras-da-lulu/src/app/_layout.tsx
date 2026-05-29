@@ -1,23 +1,35 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import { fontAssets } from '@/theme/fonts';
+import { initDb } from '@/repositories/db';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [dbReady, setDbReady] = useState(false);
   const [fontsLoaded] = useFonts(fontAssets);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    async function bootstrap() {
+      await initDb();
+      await useSettingsStore.getState().load();
+      setDbReady(true);
+    }
+    bootstrap();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && dbReady) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, dbReady]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || !dbReady) return null;
 
   return (
     <ThemeProvider>
