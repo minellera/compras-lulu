@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 
-export default function DashboardScreen() {
+export default function ShoppingListDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   return (
     <View style={styles.container}>
-      <Text>Dashboard</Text>
+      <Text>Lista de Compras — {id}</Text>
     </View>
   );
 }
